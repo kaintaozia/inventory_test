@@ -1,0 +1,24 @@
+- name : crÃ©ation d'un user devops et ajout de la clÃ© pour l'authentification par clÃ©
+  hosts: all
+  tasks:
+  - name: crÃ©ation du user devops
+    user:
+      name: rundeck
+      shell: /bin/bash
+      groups: wheel
+      append: yes
+      password: "{{ 'password' | password_hash('sha512') }}"
+    become: yes
+
+  - name: Add rundeck user to the sudoers
+    copy:
+      dest: "/etc/sudoers.d/devops"
+      content: "devops  ALL=(ALL)  NOPASSWD: ALL"
+    become: yes
+
+  - name: Deploy SSH Key
+    authorized_key: 
+      user: rundeck
+      key: "{{ lookup('file', '/var/lib/rundeck/.ssh/id_rsa') }}"
+      state: present
+    become: yes
